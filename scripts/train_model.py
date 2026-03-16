@@ -53,8 +53,7 @@ FEATURE_COLS = [
     "vowel_ratio", "consonant_ratio", "entropy",
     "bigram_uniqueness", "trigram_uniqueness", "char_dist_std",
     "tld_risk_score", "has_ip_pattern", "subdomain_count",
-    "digit_ratio", "special_char_count",
-    "blacklist_score", "phishing_report_count",
+    "digit_ratio", "special_char_count"
 ]
 
 MAX_DOMAIN_LEN = 128

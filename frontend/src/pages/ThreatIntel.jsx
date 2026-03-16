@@ -1,7 +1,9 @@
+import { useState, useEffect } from 'react'
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
     PieChart, Pie, Cell, AreaChart, Area,
 } from 'recharts'
+import { getDashboardStats } from '../api'
 
 const tldData = [
     { tld: '.xyz', count: 4520 }, { tld: '.top', count: 3890 },
@@ -62,17 +64,43 @@ function ChartCard({ title, children, className = '' }) {
 }
 
 export default function ThreatIntel() {
+    const [stats, setStats] = useState(null)
+    const [loading, setLoading] = useState(true)
+
+    useEffect(() => {
+        getDashboardStats()
+            .then(data => {
+                setStats(data)
+                setLoading(false)
+            })
+            .catch(err => {
+                console.error(err)
+                setLoading(false)
+            })
+    }, [])
+
+    if (loading) return <div className="p-8 text-center text-text-secondary">Loading Threat Intelligence data...</div>
+
+    const realTldData = stats?.topTLDs || tldData
+    const mappedFeedData = stats?.feedDistribution?.map(f => ({
+        source: f.name.split(' ')[0],
+        domains: f.value,
+        name: f.name,
+        value: f.value
+    })) || feedSourceData
+    const realFeedPieData = stats?.feedDistribution || feedPieData
+
     return (
         <div>
             <h1 className="text-lg font-semibold mb-6">Threat Intelligence</h1>
 
             {/* Feed stats */}
-            <div className="grid grid-cols-3 gap-4 mb-6">
-                {feedSourceData.map((f) => (
-                    <div key={f.source} className="bg-panel border border-border rounded p-5">
+            <div className="grid grid-cols-2 gap-4 mb-6">
+                {mappedFeedData.slice(0, 2).map((f) => (
+                    <div key={f.source} className="bg-panel border border-border rounded p-6 flex flex-col items-center justify-center text-center min-h-[120px]">
                         <p className="text-xs text-text-secondary uppercase tracking-wider mb-2">{f.source}</p>
-                        <p className="text-2xl font-semibold font-mono text-white">{f.domains.toLocaleString()}</p>
-                        <p className="text-xs text-text-secondary mt-1">Malicious domains</p>
+                        <p className="text-3xl font-semibold font-mono text-white mb-1">{f.domains.toLocaleString()}</p>
+                        <p className="text-xs text-text-secondary">Domains</p>
                     </div>
                 ))}
             </div>
@@ -81,7 +109,7 @@ export default function ThreatIntel() {
                 {/* Top Malicious TLDs */}
                 <ChartCard title="Top Malicious TLDs">
                     <ResponsiveContainer width="100%" height={280}>
-                        <BarChart data={tldData} layout="vertical">
+                        <BarChart data={realTldData} layout="vertical">
                             <CartesianGrid strokeDasharray="3 3" stroke="#1a1a1a" />
                             <XAxis type="number" stroke="#555" tick={{ fontSize: 11, fill: '#9A9A9A' }} />
                             <YAxis type="category" dataKey="tld" stroke="#555" tick={{ fontSize: 11, fill: '#9A9A9A' }} width={50} />
@@ -92,12 +120,12 @@ export default function ThreatIntel() {
                 </ChartCard>
 
                 {/* Feed Distribution Pie */}
-                <ChartCard title="Malicious Domains by Feed Source">
+                <ChartCard title="Domains per Feed Component">
                     <div className="flex items-center justify-center h-[280px]">
                         <ResponsiveContainer width="60%" height={240}>
                             <PieChart>
                                 <Pie
-                                    data={feedPieData}
+                                    data={realFeedPieData}
                                     cx="50%"
                                     cy="50%"
                                     innerRadius={55}
@@ -106,7 +134,7 @@ export default function ThreatIntel() {
                                     stroke="#0B0B0B"
                                     strokeWidth={2}
                                 >
-                                    {feedPieData.map((_, i) => (
+                                    {realFeedPieData.map((_, i) => (
                                         <Cell key={i} fill={COLORS[i % COLORS.length]} />
                                     ))}
                                 </Pie>
@@ -122,11 +150,13 @@ export default function ThreatIntel() {
                             </PieChart>
                         </ResponsiveContainer>
                         <div className="space-y-3">
-                            {feedPieData.map((d, i) => (
-                                <div key={d.name} className="flex items-center gap-2 text-xs">
-                                    <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: COLORS[i] }} />
-                                    <span className="text-text-secondary">{d.name}</span>
-                                    <span className="text-white font-mono ml-1">{d.value}%</span>
+                            {realFeedPieData.slice(0, 3).map((d, i) => (
+                                <div key={d.name} className="flex items-center gap-3 text-xs justify-between w-full pr-4">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-2.5 h-2.5 rounded-sm shrink-0" style={{ backgroundColor: COLORS[i] }} />
+                                        <span className="text-text-secondary truncate w-24" title={d.name}>{d.name}</span>
+                                    </div>
+                                    <span className="text-white font-mono shrink-0">{d.value.toLocaleString()}</span>
                                 </div>
                             ))}
                         </div>

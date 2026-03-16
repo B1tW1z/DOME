@@ -4,6 +4,7 @@ import {
     BarChart, Bar, PieChart, Pie, Cell, AreaChart, Area,
 } from 'recharts'
 import { Shield, AlertTriangle, CheckCircle, Activity } from 'lucide-react'
+import { getDashboardStats } from '../api'
 
 // -- Mock dashboard data (replaced with real API data in production) --------
 const detectionRateData = [
@@ -69,16 +70,28 @@ const CustomTooltip = ({ active, payload, label }) => {
 }
 
 export default function Dashboard() {
+    const [stats, setStats] = useState(null)
+
+    useEffect(() => {
+        getDashboardStats()
+            .then(setStats)
+            .catch(console.error)
+    }, [])
+
+    const s = stats?.stats || { totalAnalyzed: '-', malicious: '-', benign: '-', detectionRate: '-' }
+    const realTldData = stats?.topTLDs || tldData
+    const realFeedData = stats?.feedDistribution || feedData
+
     return (
         <div>
             <h1 className="text-lg font-semibold mb-6">Dashboard</h1>
 
             {/* Stat Cards */}
             <div className="grid grid-cols-4 gap-4 mb-6">
-                <StatCard icon={Activity} label="Total Analyzed" value="200,000" subtitle="Domains processed" />
-                <StatCard icon={AlertTriangle} label="Malicious" value="100,000" subtitle="Threats detected" />
-                <StatCard icon={CheckCircle} label="Benign" value="100,000" subtitle="Clean domains" />
-                <StatCard icon={Shield} label="Detection Rate" value="97.2%" subtitle="Model accuracy" />
+                <StatCard icon={Activity} label="Total Analyzed" value={s.totalAnalyzed.toLocaleString()} subtitle="Domains processed" />
+                <StatCard icon={AlertTriangle} label="Malicious" value={s.malicious.toLocaleString()} subtitle="Threats detected" />
+                <StatCard icon={CheckCircle} label="Benign" value={s.benign.toLocaleString()} subtitle="Clean domains" />
+                <StatCard icon={Shield} label="Detection Rate" value={`${s.detectionRate}%`} subtitle="Model accuracy" />
             </div>
 
             {/* Charts Grid */}
@@ -112,7 +125,7 @@ export default function Dashboard() {
                 {/* Top Malicious TLDs */}
                 <ChartCard title="Top Malicious TLDs">
                     <ResponsiveContainer width="100%" height={220}>
-                        <BarChart data={tldData} layout="vertical">
+                        <BarChart data={realTldData} layout="vertical">
                             <CartesianGrid strokeDasharray="3 3" stroke="#1a1a1a" />
                             <XAxis type="number" stroke="#555" tick={{ fontSize: 11, fill: '#9A9A9A' }} />
                             <YAxis type="category" dataKey="tld" stroke="#555" tick={{ fontSize: 11, fill: '#9A9A9A' }} width={50} />
@@ -128,7 +141,7 @@ export default function Dashboard() {
                         <ResponsiveContainer width="100%" height={200}>
                             <PieChart>
                                 <Pie
-                                    data={feedData}
+                                    data={realFeedData}
                                     cx="50%"
                                     cy="50%"
                                     innerRadius={50}
@@ -137,7 +150,7 @@ export default function Dashboard() {
                                     stroke="#0B0B0B"
                                     strokeWidth={2}
                                 >
-                                    {feedData.map((_, i) => (
+                                    {realFeedData.map((_, i) => (
                                         <Cell key={i} fill={COLORS[i % COLORS.length]} />
                                     ))}
                                 </Pie>
@@ -153,11 +166,11 @@ export default function Dashboard() {
                             </PieChart>
                         </ResponsiveContainer>
                         <div className="space-y-2 ml-4">
-                            {feedData.map((d, i) => (
+                            {realFeedData.map((d, i) => (
                                 <div key={d.name} className="flex items-center gap-2 text-xs">
-                                    <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: COLORS[i] }} />
-                                    <span className="text-text-secondary">{d.name}</span>
-                                    <span className="text-white font-mono ml-1">{d.value}%</span>
+                                    <div className="w-2.5 h-2.5 rounded-sm shrink-0" style={{ backgroundColor: COLORS[i] }} />
+                                    <span className="text-text-secondary truncate w-28" title={d.name}>{d.name}</span>
+                                    <span className="text-white font-mono ml-1 shrink-0">{d.value.toLocaleString()}</span>
                                 </div>
                             ))}
                         </div>

@@ -83,7 +83,7 @@ const CustomTooltip = ({ active, payload }) => {
 
 export default function ModelPerformance() {
     const [metrics, setMetrics] = useState(defaultMetrics)
-    const [activeModel, setActiveModel] = useState('xgboost')
+    const [activeModel, setActiveModel] = useState('lstm')
 
     useEffect(() => {
         getMetrics()
@@ -105,8 +105,8 @@ export default function ModelPerformance() {
                         key={m}
                         onClick={() => setActiveModel(m)}
                         className={`px-4 py-2 text-xs rounded border transition-colors ${activeModel === m
-                                ? 'bg-white text-black border-white'
-                                : 'bg-black text-white border-[#333] hover:bg-white hover:text-black'
+                            ? 'bg-white text-black border-white'
+                            : 'bg-black text-white border-[#333] hover:bg-white hover:text-black'
                             }`}
                     >
                         {m.replace(/_/g, ' ').toUpperCase()}
@@ -163,7 +163,7 @@ export default function ModelPerformance() {
                 {/* Confusion Matrices */}
                 <div className="space-y-4">
                     <ConfusionMatrixGrid
-                        data={confusionMatrix[activeModel] || confusionMatrix.xgboost}
+                        data={confusionMatrix[activeModel] || confusionMatrix.lstm}
                         title={`${activeModel.replace(/_/g, ' ').toUpperCase()} — Confusion Matrix`}
                     />
 

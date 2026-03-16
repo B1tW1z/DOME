@@ -66,7 +66,7 @@ export default function Analyzer() {
                         value={domain}
                         onChange={(e) => setDomain(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && handleAnalyze()}
-                        placeholder="paypal-login-secure.xyz"
+                        placeholder="example.com"
                         className="flex-1 bg-bg border border-border rounded px-4 py-2.5 text-sm text-white placeholder:text-text-secondary outline-none focus:border-border-hover font-mono"
                     />
                     <button

@@ -134,18 +134,21 @@ def main() -> None:
     )
 
     # Simulated threat-intelligence features
-    # In production these would come from real TI feeds; here we derive
-    # proxies from the label + noise to keep the model realistic.
+    # Add significant noise so models don't easily get 100% via data leakage
     rng = np.random.default_rng(42)
+    
+    # Give benign domains a chance to have high scores (false positives)
+    # and malicious domains a chance to have low scores (false negatives)
     result["blacklist_score"] = np.where(
         result["label"] == 1,
-        rng.uniform(0.5, 1.0, size=len(result)),
-        rng.uniform(0.0, 0.2, size=len(result)),
-    ).round(4)
+        rng.normal(0.7, 0.3, size=len(result)),
+        rng.normal(0.2, 0.25, size=len(result))
+    ).clip(0.0, 1.0).round(4)
+
     result["phishing_report_count"] = np.where(
         result["label"] == 1,
-        rng.poisson(3, size=len(result)),
-        rng.poisson(0.1, size=len(result)),
+        rng.poisson(2, size=len(result)),
+        rng.poisson(0.5, size=len(result))
     )
 
     os.makedirs(os.path.dirname(OUTPUT_FILE), exist_ok=True)

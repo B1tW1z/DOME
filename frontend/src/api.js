@@ -27,6 +27,11 @@ export async function getMetrics() {
     return res.json()
 }
 
+export async function getDashboardStats() {
+    const res = await fetch(`${API}/dashboard_stats`)
+    if (!res.ok) throw new Error('Failed to fetch dashboard stats')
+    return res.json()
+}
 export async function healthCheck() {
     const res = await fetch(`${API}/health`)
     return res.json()
