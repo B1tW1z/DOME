@@ -4,32 +4,34 @@ import {
 } from 'recharts'
 import { getMetrics } from '../api'
 
-// Default metrics for offline / demo mode
+// Default metrics from latest user training (realistic non-leaked data)
 const defaultMetrics = {
-    lstm: { accuracy: 0.9721, precision: 0.9685, recall: 0.9758, f1_score: 0.9721, roc_auc: 0.9952 },
-    random_forest: { accuracy: 0.9834, precision: 0.9812, recall: 0.9857, f1_score: 0.9834, roc_auc: 0.9981 },
-    xgboost: { accuracy: 0.9867, precision: 0.9845, recall: 0.9890, f1_score: 0.9867, roc_auc: 0.9988 },
+    lstm: { accuracy: 0.9491, precision: 0.9390, recall: 0.9607, f1_score: 0.9497, roc_auc: 0.9891 },
+    random_forest: { accuracy: 0.8670, precision: 0.9009, recall: 0.8248, f1_score: 0.8612, roc_auc: 0.9441 },
+    xgboost: { accuracy: 0.8690, precision: 0.9079, recall: 0.8215, f1_score: 0.8625, roc_auc: 0.9468 },
 }
 
-// Simulated ROC curve data
-const rocData = [
-    { fpr: 0, tpr: 0 },
-    { fpr: 0.01, tpr: 0.45 },
-    { fpr: 0.02, tpr: 0.72 },
-    { fpr: 0.05, tpr: 0.88 },
-    { fpr: 0.1, tpr: 0.94 },
-    { fpr: 0.15, tpr: 0.965 },
-    { fpr: 0.2, tpr: 0.975 },
-    { fpr: 0.3, tpr: 0.985 },
-    { fpr: 0.5, tpr: 0.993 },
-    { fpr: 0.7, tpr: 0.997 },
-    { fpr: 1.0, tpr: 1.0 },
-]
+// Simulated ROC curve data aligned to the AUC scores
+const rocData = {
+    lstm: [
+        { fpr: 0, tpr: 0 }, { fpr: 0.02, tpr: 0.82 }, { fpr: 0.05, tpr: 0.92 },
+        { fpr: 0.1, tpr: 0.96 }, { fpr: 0.2, tpr: 0.985 }, { fpr: 0.5, tpr: 0.995 }, { fpr: 1.0, tpr: 1.0 }
+    ],
+    random_forest: [
+        { fpr: 0, tpr: 0 }, { fpr: 0.05, tpr: 0.75 }, { fpr: 0.1, tpr: 0.85 },
+        { fpr: 0.2, tpr: 0.92 }, { fpr: 0.4, tpr: 0.96 }, { fpr: 0.7, tpr: 0.98 }, { fpr: 1.0, tpr: 1.0 }
+    ],
+    xgboost: [
+        { fpr: 0, tpr: 0 }, { fpr: 0.04, tpr: 0.76 }, { fpr: 0.1, tpr: 0.86 },
+        { fpr: 0.2, tpr: 0.93 }, { fpr: 0.4, tpr: 0.965 }, { fpr: 0.7, tpr: 0.982 }, { fpr: 1.0, tpr: 1.0 }
+    ]
+}
 
+// Approximated Confusion Matrices based on 39,994 test samples
 const confusionMatrix = {
-    lstm: { tp: 19516, tn: 19342, fp: 658, fn: 484 },
-    random_forest: { tp: 19714, tn: 19554, fp: 446, fn: 286 },
-    xgboost: { tp: 19780, tn: 19588, fp: 412, fn: 220 },
+    lstm: { tp: 19214, tn: 18748, fp: 1248, fn: 784 },
+    random_forest: { tp: 16496, tn: 18182, fp: 1814, fn: 3502 },
+    xgboost: { tp: 16430, tn: 18324, fp: 1672, fn: 3568 },
 }
 
 function MetricCard({ label, value }) {
@@ -130,7 +132,7 @@ export default function ModelPerformance() {
                 <div className="bg-panel border border-border rounded p-5">
                     <h3 className="text-xs uppercase tracking-wider text-text-secondary mb-4">ROC Curve</h3>
                     <ResponsiveContainer width="100%" height={280}>
-                        <LineChart data={rocData}>
+                        <LineChart data={rocData[activeModel] || rocData.lstm}>
                             <CartesianGrid strokeDasharray="3 3" stroke="#1a1a1a" />
                             <XAxis
                                 dataKey="fpr"

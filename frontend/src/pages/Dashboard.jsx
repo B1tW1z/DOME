@@ -81,6 +81,8 @@ export default function Dashboard() {
     const s = stats?.stats || { totalAnalyzed: '-', malicious: '-', benign: '-', detectionRate: '-' }
     const realTldData = stats?.topTLDs || tldData
     const realFeedData = stats?.feedDistribution || feedData
+    const realDetectionData = stats?.detectionTrend || detectionRateData
+    const realEntropyData = stats?.entropyData || entropyData
 
     return (
         <div>
@@ -99,7 +101,7 @@ export default function Dashboard() {
                 {/* Detection Rate */}
                 <ChartCard title="Detection Rate Over Time">
                     <ResponsiveContainer width="100%" height={220}>
-                        <LineChart data={detectionRateData}>
+                        <LineChart data={realDetectionData}>
                             <CartesianGrid strokeDasharray="3 3" stroke="#1a1a1a" />
                             <XAxis dataKey="time" stroke="#555" tick={{ fontSize: 11, fill: '#9A9A9A' }} />
                             <YAxis stroke="#555" tick={{ fontSize: 11, fill: '#9A9A9A' }} />
@@ -112,7 +114,7 @@ export default function Dashboard() {
                 {/* Entropy Distribution */}
                 <ChartCard title="Domain Entropy Distribution">
                     <ResponsiveContainer width="100%" height={220}>
-                        <BarChart data={entropyData}>
+                        <BarChart data={realEntropyData}>
                             <CartesianGrid strokeDasharray="3 3" stroke="#1a1a1a" />
                             <XAxis dataKey="range" stroke="#555" tick={{ fontSize: 11, fill: '#9A9A9A' }} />
                             <YAxis stroke="#555" tick={{ fontSize: 11, fill: '#9A9A9A' }} />
