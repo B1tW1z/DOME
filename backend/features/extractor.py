@@ -28,8 +28,7 @@ FEATURE_NAMES = [
     "vowel_ratio", "consonant_ratio", "entropy",
     "bigram_uniqueness", "trigram_uniqueness", "char_dist_std",
     "tld_risk_score", "has_ip_pattern", "subdomain_count",
-    "digit_ratio", "special_char_count",
-    "blacklist_score", "phishing_report_count",
+    "digit_ratio", "special_char_count"
 ]
 
 
@@ -92,9 +91,7 @@ def extract_features(domain: str) -> dict:
         "digit_ratio": round(sum(c.isdigit() for c in name) / max(len(name), 1), 4),
         "special_char_count": sum(
             1 for c in name if c not in string.ascii_lowercase and not c.isdigit() and c != "-"
-        ),
-        "blacklist_score": 0.0,
-        "phishing_report_count": 0,
+        )
     }
 
 

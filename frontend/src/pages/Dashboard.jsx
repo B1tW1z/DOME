@@ -98,16 +98,16 @@ export default function Dashboard() {
 
             {/* Charts Grid */}
             <div className="grid grid-cols-2 gap-4">
-                {/* Detection Rate */}
-                <ChartCard title="Detection Rate Over Time">
+                {/* Domain Length Distribution */}
+                <ChartCard title="Domain Length Distribution">
                     <ResponsiveContainer width="100%" height={220}>
-                        <LineChart data={realDetectionData}>
+                        <BarChart data={realDetectionData}>
                             <CartesianGrid strokeDasharray="3 3" stroke="#1a1a1a" />
                             <XAxis dataKey="time" stroke="#555" tick={{ fontSize: 11, fill: '#9A9A9A' }} />
                             <YAxis stroke="#555" tick={{ fontSize: 11, fill: '#9A9A9A' }} />
                             <Tooltip content={<CustomTooltip />} />
-                            <Line type="monotone" dataKey="detections" stroke="#FFFFFF" strokeWidth={1.5} dot={false} />
-                        </LineChart>
+                            <Bar dataKey="detections" fill="#FFFFFF" radius={[2, 2, 0, 0]} />
+                        </BarChart>
                     </ResponsiveContainer>
                 </ChartCard>
 

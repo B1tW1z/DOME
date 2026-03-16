@@ -218,8 +218,14 @@ def health():
     }
 
 
+_cached_dashboard_stats = None
+
 @app.get("/dashboard_stats")
 def dashboard_stats():
+    global _cached_dashboard_stats
+    if _cached_dashboard_stats is not None:
+        return _cached_dashboard_stats
+
     """Return actual dataset statistics for the dashboard UI."""
     clean_csv = os.path.join(BASE_DIR, "dataset", "clean_dataset.csv")
     
@@ -240,6 +246,7 @@ def dashboard_stats():
 
     try:
         if os.path.isfile(clean_csv):
+            import math
             df = pd.read_csv(clean_csv)
             total = int(len(df))
             malicious = int((df["label"] == 1).sum())
@@ -255,42 +262,46 @@ def dashboard_stats():
             top_tlds = tlds.value_counts().head(8)
             tld_data = [{"tld": k, "count": int(v)} for k, v in top_tlds.items() if k]
             
-            # Estimate feed data based on source column if it exists, otherwise use heuristic
+            # Feed Distribution
             if "source" in df.columns:
                 feed_counts = df["source"].value_counts()
                 feed_data = [{"name": k, "value": int(v)} for k, v in feed_counts.items()]
 
+            # Domain Length Distribution (Authentic)
+            lengths = df["domain"].str.len()
+            length_bins = pd.cut(lengths, bins=[0, 10, 15, 20, 25, 100], labels=["0-10", "11-15", "16-20", "21-25", "26+"])
+            length_counts = length_bins.value_counts().sort_index()
+            # We map this to the same 'detectionTrend' schema name to avoid changing frontend, but change labels.
+            length_data = [{"time": str(k), "detections": int(v)} for k, v in length_counts.items()]
+
+            # Entropy Distribution (Authentic via features dataset)
+            features_csv = os.path.join(BASE_DIR, "dataset", "features_dataset.csv")
+            if os.path.isfile(features_csv):
+                feat_df = pd.read_csv(features_csv, usecols=['entropy'])
+                ent_bins = pd.cut(feat_df['entropy'], bins=[-1, 1, 2, 3, 4, 10], labels=["0-1", "1-2", "2-3", "3-4", "4-5"])
+                ent_counts = ent_bins.value_counts().sort_index()
+                entropy_bins = [{"range": str(k), "count": int(v)} for k, v in ent_counts.items()]
+            else:
+                # Calculate manually if features not found
+                import math
+                def calc_entropy(s):
+                    p = [s.count(c) / len(s) for c in set(s)]
+                    return -sum(pi * math.log2(pi) for pi in p)
+                entropies = df['domain'].apply(calc_entropy)
+                ent_bins = pd.cut(entropies, bins=[-1, 1, 2, 3, 4, 10], labels=["0-1", "1-2", "2-3", "3-4", "4-5"])
+                ent_counts = ent_bins.value_counts().sort_index()
+                entropy_bins = [{"range": str(k), "count": int(v)} for k, v in ent_counts.items()]
+
     except Exception as e:
         print(f"Error calculating stats: {e}")
+        length_data = []
 
     # Use actual ROC AUC from the loaded metrics if available
     detection_rate = 97.2
     if metrics_data and "lstm" in metrics_data:
         detection_rate = round(metrics_data["lstm"].get("accuracy", 0.949) * 100, 1)
 
-    # Generate dynamic graph data linked to the real counts
-    import random
-    random.seed(42)  # consistent generation
-    
-    # 1. Detection over time (scaling total malicious across 24h bins)
-    base_detections = malicious // 24
-    detection_trend = []
-    for hour in range(0, 24, 2):
-        variation = random.uniform(0.7, 1.3)
-        count = int(base_detections * variation * 2) # approx group into 2h bins
-        detection_trend.append({"time": f"{hour:02d}:00", "detections": count})
-        
-    # 2. Entropy distribution (scaling total dataset into realistic buckets)
-    # Typical phishing entropy is higher (3.5-4.5), benign is lower (2.5-3.5)
-    entropy_bins = [
-        {"range": "0-1", "count": int(total * 0.01)},
-        {"range": "1-2", "count": int(total * 0.05)},
-        {"range": "2-3", "count": int(total * 0.25)},
-        {"range": "3-4", "count": int(total * 0.45)},
-        {"range": "4-5", "count": int(total * 0.24)},
-    ]
-
-    return {
+    _cached_dashboard_stats = {
         "stats": {
             "totalAnalyzed": total,
             "malicious": malicious,
@@ -299,6 +310,8 @@ def dashboard_stats():
         },
         "topTLDs": tld_data,
         "feedDistribution": feed_data,
-        "detectionTrend": detection_trend,
+        "detectionTrend": length_data, # Renamed payload format slightly
         "entropyData": entropy_bins
     }
+    
+    return _cached_dashboard_stats
