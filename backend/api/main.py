@@ -160,11 +160,9 @@ def predict_domain(domain: str) -> dict:
             "num_hyphens": feats["num_hyphens"],
             "vowel_ratio": feats["vowel_ratio"],
             "tld_risk_score": feats["tld_risk_score"],
-            "blacklist_score": feats["blacklist_score"],
             "subdomain_count": feats["subdomain_count"],
         },
     }
-
 
 # ---------------------------------------------------------------------------
 # Endpoints
