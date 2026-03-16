@@ -1,0 +1,49 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+*.egg
+.eggs/
+*.whl
+venv/
+env/
+.env
+
+# Trained models (large binary files — regenerate via train_model.py)
+backend/models/*.pt
+backend/models/*.joblib
+backend/models/*.keras
+backend/models/*.png
+backend/models/metrics.json
+backend/models/feature_columns.json
+
+# Generated datasets (regenerate via pipeline scripts)
+backend/dataset/raw_dataset.csv
+backend/dataset/clean_dataset.csv
+backend/dataset/features_dataset.csv
+
+# Node / Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Docker
+.docker/
+
+# Logs
+*.log
+npm-debug.log*
